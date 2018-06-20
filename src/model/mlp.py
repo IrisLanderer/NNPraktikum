@@ -2,6 +2,13 @@
 import numpy as np
 
 from util.loss_functions import CrossEntropyError
+from util.loss_functions import BinaryCrossEntropyError
+from util.loss_functions import SumSquaredError
+from util.loss_functions import MeanSquaredError
+from util.loss_functions import DifferentError
+from util.loss_functions import AbsoluteError
+
+
 from model.logistic_layer import LogisticLayer
 from model.classifier import Classifier
 
@@ -43,7 +50,7 @@ class MultilayerPerceptron(Classifier):
         self.epochs = epochs
         self.outputTask = outputTask  # Either classification or regression
         self.outputActivation = outputActivation
-        self.cost = cost
+    #    self.cost = cost
 
         self.trainingSet = train
         self.validationSet = valid
@@ -113,6 +120,10 @@ class MultilayerPerceptron(Classifier):
         # Here you have to propagate forward through the layers
         # And remember the activation values of each layer
         """
+        output = self._get_input_layer().forward(inp)
+        self._get_output_layer().forward(output)
+        
+        
         
     def _compute_error(self, target):
         """
@@ -123,13 +134,14 @@ class MultilayerPerceptron(Classifier):
         ndarray :
             a numpy array (1,nOut) containing the output of the layer
         """
-        pass
+        return CrossEntropyError.calculateError(target, self._get_output_layer().outp)
     
     def _update_weights(self, learningRate):
         """
         Update the weights of the layers by propagating back the error
         """
-        pass
+        #pass
+        self.layer.updateWeights(self.learningRate)
         
     def train(self, verbose=True):
         """Train the Multi-layer Perceptrons
@@ -139,14 +151,41 @@ class MultilayerPerceptron(Classifier):
         verbose : boolean
             Print logging messages with validation accuracy if verbose is True.
         """
-        pass
+        for epoch in range(self.epochs):
+            if verbose:
+                print("Training epoch {0}/{1}.."
+                      .format(epoch + 1, self.epochs))
+
+            for img, label in zip(self.trainingSet.input,
+                              self.trainingSet.label):
+
+                self._feed_forward(img)
+    
+                delta = self._get_output_layer().computeDerivative(self.loss.calculateDerivative(
+                                             label, self._get_output_layer().outp), 1.0)
+                current_weights = self.updateWeights(self.learningRate)
+                self._get_input_layer().computeDerivative(delta, current_weights)
+    
+            
+                self.updateWeights(self.learningRate)
+
+            if verbose:
+                accuracy = accuracy_score(self.validationSet.label,
+                                          self.evaluate(self.validationSet))
+                # Record the performance of each epoch for later usages
+                # e.g. plotting, reporting..
+                self.performances.append(accuracy)
+                print("Accuracy on validation: {0:.2f}%"
+                      .format(accuracy * 100))
+                print("-----------------------------")
 
 
 
     def classify(self, test_instance):
         # Classify an instance given the model of the classifier
         # You need to implement something here
-        pass
+        output = self._feed_forward(test_instance)
+        np.argmax(output)
         
 
     def evaluate(self, test=None):
