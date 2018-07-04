@@ -58,9 +58,11 @@ class LogisticLayer():
         # You can have better initialization here
         if weights is None:
             rns = np.random.RandomState(int(time.time()))
-            self.weights = rns.uniform(size=(nIn + 1, nOut))-0.5
+            #why the +1 ???
+            self.weights = rns.uniform(size=(nIn+1, nOut))-0.5
         else:
-            assert(weights.shape == (nIn + 1, nOut))
+            #why the +1 ???
+            assert(weights.shape == (nIn+1, nOut))
             self.weights = weights
 
         self.isClassifierLayer = isClassifierLayer
@@ -126,17 +128,19 @@ class LogisticLayer():
         # dado: derivative of activation function w.r.t the output
         
         
-        #dado = self.activationDerivative(self.outp)
-        #self.deltas = (dado * np.dot(next_derivatives, next_weights))
+        dado = self.activationDerivative(self.outp)
+        self.deltas = (dado * np.dot(next_derivatives, next_weights))
 
         # Or you can explicitly calculate the derivatives for two cases
         # Page 40 Back-propagation slides
-        if self.isClassifierLayer:
-            self.deltas = (next_derivatives - self.outp) * self.outp * \
-                           (1 - self.outp)
-        else:
-             self.deltas = self.outp * (1 - self.outp) * \
-                           np.dot(next_derivatives, next_weights)
+# =============================================================================
+#         if self.isClassifierLayer:
+#             self.deltas = (next_derivatives - self.outp) * self.outp * \
+#                            (1 - self.outp)
+#         else:
+#              self.deltas = self.outp * (1 - self.outp) * \
+#                            np.dot(next_derivatives, next_weights)
+# =============================================================================
         # Or you can have two computeDerivative methods, feel free to call
         # the other is computeOutputLayerDerivative or such.
         return self.deltas
